@@ -1,17 +1,75 @@
-import { menuArray } from "./data.js";
+import { menuArray } from "./data.js"
 
-const menuHtml = menuArray.map(function(menu){
-    return `
-        <div class="flex justify-between items-center border-b py-4">
-            <div class="text-3xl">${menu.emoji}</div>
+const container = document.getElementById("container")
+const orderArray = []
+
+function getMenuHtml() {
+    return menuArray.map(item => `
+        <div class="flex justify-between items-center border-b-2 py-4">
+            <div class="text-3xl">${item.emoji}</div>
             <div class="flex-1 px-4">
-                <h3 class="text-lg font-bold">${menu.name}</h3>
-                <p class="text-sm text-gray-600">${menu.ingredients.join(", ")}</p>
-                <p class="text-sm font-semibold mt-1">$${menu.price}</p>
+                <h3 class="text-base28 font-normal">${item.name}</h3>
+                <p class="text-base16 text-grayText font-normal">${item.ingredients.join(", ")}</p>
+                <p class="text-base28 font-normal mt-1">$${item.price}</p>
             </div>
-            <button class="text-2xl border rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-200" data-add="${menu.id}">+</button>
+            <button class="text-2xl border rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-200" data-add="${item.id}">+</button>
+        </div>
+    `).join("")
+}
+
+function getOrderSectionHtml() {
+    return `
+        <div id="order-section" class="mt-8">
+            <h2 class="text-center text-base28 font-normal mb-4">Your order</h2>
+            <div id="order-items" class="mb-4"></div>
+            <hr class="mb-[20px] border-t-2 border-black">
+            <div class="flex justify-between mb-6">
+                <p class="text-base28 font-normal">Total price:</p>
+                <p id="total-price" class="text-base28 font-normal">$0</p>
+            </div>
+            <button id="complete-order-btn" class="w-full bg-green-400 hover:bg-green-500 text-white py-3 rounded font-verdana font-bold">
+                Complete order
+            </button>
         </div>
     `
+}
+
+function renderPage() {
+    container.innerHTML = `
+        ${getMenuHtml()}
+        ${getOrderSectionHtml()}
+    `
+}
+
+function renderOrder() {
+    const orderContainer = document.getElementById("order-items")
+    const totalPriceEl = document.getElementById("total-price")
+
+    let total = 0
+    const itemsHtml = orderArray.map(item => {
+        total += item.price
+        return `
+            <div class="flex justify-between mb-2">
+                <p class="text-base28 font-normal">
+                    ${item.name}
+                    <span class="text-base16 text-grayText ml-2 cursor-pointer">remove</span>
+                </p>
+                <p class="text-base28 font-normal">$${item.price}</p>
+            </div>
+        `
+    }).join("")
+
+    orderContainer.innerHTML = itemsHtml
+    totalPriceEl.textContent = `$${total}`
+}
+
+document.addEventListener("click", function (e) {
+    if (e.target.dataset.add) {
+        const itemId = Number(e.target.dataset.add)
+        const selectedItem = menuArray.find(item => item.id === itemId)
+        orderArray.push(selectedItem)
+        renderOrder()
+    }
 })
 
-document.getElementById("container").innerHTML = menuHtml.join("");
+renderPage()
