@@ -1,16 +1,16 @@
 import { menuArray } from "./data.js"
 
 const container = document.getElementById("container")
-const orderArray = []
+let orderArray = []
 
 function getMenuHtml() {
     return menuArray.map(item => `
         <div class="flex justify-between items-center border-b-2 py-4">
-            <div class="text-3xl">${item.emoji}</div>
+            <img src="${item.image}" alt="${item.name}" class="w-12 h-12 object-contain" />
             <div class="flex-1 px-4">
                 <h3 class="text-base28 font-normal">${item.name}</h3>
                 <p class="text-base16 text-grayText font-normal">${item.ingredients.join(", ")}</p>
-                <p class="text-base28 font-normal mt-1">$${item.price}</p>
+                <p class="text-base28 font-normal mt-1">₦${item.price}</p>
             </div>
             <button class="text-2xl border rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-200" data-add="${item.id}">+</button>
         </div>
@@ -25,7 +25,7 @@ function getOrderSectionHtml() {
             <hr class="mb-[20px] border-t-2 border-black">
             <div class="flex justify-between mb-6">
                 <p class="text-base28 font-normal">Total price:</p>
-                <p id="total-price" class="text-base28 font-normal">$0</p>
+                <p id="total-price" class="text-base28 font-normal">₦0</p>
             </div>
             <button id="complete-order-btn" class="w-full bg-green-400 hover:bg-green-500 text-white py-3 rounded font-verdana font-bold">
                 Complete order
@@ -52,22 +52,33 @@ function renderOrder() {
             <div class="flex justify-between mb-2">
                 <p class="text-base28 font-normal">
                     ${item.name}
-                    <span class="text-base16 text-grayText ml-2 cursor-pointer">remove</span>
+                    <span class="text-base16 text-grayText ml-2 cursor-pointer" data-remove="${item.id}">remove</span>
                 </p>
-                <p class="text-base28 font-normal">$${item.price}</p>
+                <p class="text-base28 font-normal">₦${item.price}</p>
             </div>
         `
     }).join("")
 
     orderContainer.innerHTML = itemsHtml
-    totalPriceEl.textContent = `$${total}`
+    totalPriceEl.textContent = `₦${total}`
 }
 
 document.addEventListener("click", function (e) {
+    // Add item
     if (e.target.dataset.add) {
         const itemId = Number(e.target.dataset.add)
         const selectedItem = menuArray.find(item => item.id === itemId)
         orderArray.push(selectedItem)
+        renderOrder()
+    }
+
+    // Remove item
+    if (e.target.dataset.remove) {
+        const itemId = Number(e.target.dataset.remove)
+        const indexToRemove = orderArray.findIndex(item => item.id === itemId)
+        if (indexToRemove !== -1) {
+            orderArray.splice(indexToRemove, 1)
+        }
         renderOrder()
     }
 })
