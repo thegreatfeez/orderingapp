@@ -1,15 +1,16 @@
 import { menuArray } from "./data.js"
 import { getMenuHtml, getOrderSectionHtml, getPaymentModalHtml } from './html.js';
+let orderArray = JSON.parse(localStorage.getItem("orderArray")) || []
 
 
 
 const container = document.getElementById("container")
-let orderArray = [];
+
 let total = 0
 function renderPage() {
     container.innerHTML = `
         ${getMenuHtml()}
-        ${getOrderSectionHtml()}
+        ${getOrderSectionHtml(total)}
         ${getPaymentModalHtml()}
     `
 }
@@ -17,18 +18,16 @@ function renderPage() {
 function renderOrder() {
     const orderContainer = document.getElementById("order-items")
     const totalPriceEl = document.getElementById("total-price")
-    total = orderArray.reduce((sum,item)=> sum + item.price, 0)
+    total = orderArray.reduce((sum,item)=> sum + item.price * item.quantity, 0)
 
-    
     const itemsHtml = orderArray.map(item => {
-
         return `
             <div class="flex justify-between mb-2">
                 <p class="text-base28 font-normal">
-                    ${item.name}
+                    ${item.name} x${item.quantity}
                     <span class="text-base16 text-grayText ml-2 cursor-pointer" data-remove="${item.id}">remove</span>
                 </p>
-                <p class="text-base28 font-normal">₦${item.price}</p>
+                <p class="text-base28 font-normal">₦${item.price * item.quantity}</p>
             </div>
         `
     }).join("")
@@ -42,7 +41,16 @@ document.addEventListener("click", function (e) {
     if (e.target.dataset.add) {
         const itemId = Number(e.target.dataset.add)
         const selectedItem = menuArray.find(item => item.id === itemId)
-        orderArray.push(selectedItem)
+        const existingOrderItem = orderArray.find(item => item.id === itemId)
+        if (existingOrderItem) {
+            existingOrderItem.quantity += 1
+        } else {
+            orderArray.push({ ...selectedItem, quantity: 1 })
+        }
+        localStorage.setItem("orderArray", JSON.stringify(orderArray))
+        total = orderArray.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        localStorage.setItem("total", total);
+        renderPage()
         renderOrder()
     }
 
@@ -51,8 +59,16 @@ document.addEventListener("click", function (e) {
         const itemId = Number(e.target.dataset.remove)
         const indexToRemove = orderArray.findIndex(item => item.id === itemId)
         if (indexToRemove !== -1) {
-            orderArray.splice(indexToRemove, 1)
+            if (orderArray[indexToRemove].quantity > 1) {
+                orderArray[indexToRemove].quantity -= 1
+            } else {
+                orderArray.splice(indexToRemove, 1)
+            }
+            localStorage.setItem("orderArray", JSON.stringify(orderArray))
         }
+        total = orderArray.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        localStorage.setItem("total", total);
+        renderPage()
         renderOrder()
     }
     //Complete Order
@@ -83,4 +99,7 @@ document.addEventListener("click", function (e) {
 
 })
 
+// On page load, recalculate total from orderArray before rendering
+total = orderArray.reduce((sum, item) => sum + item.price * (item.quantity || 1), 0);
 renderPage()
+renderOrder()

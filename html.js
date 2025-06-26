@@ -14,22 +14,41 @@ export function getMenuHtml() {
     `).join("")
 }
 
-export function getOrderSectionHtml() {
+export function getOrderSectionHtml(total) {
+    let discount = 0;
+    let discountedTotal = total;
+    const discountThreshold = 1500;
+    if (total >= discountThreshold) {
+        discount = total * 0.1;
+        discountedTotal = total - discount;
+    }
     return `
-        <div id="order-section" class="mt-8">
-            <h2 class="text-center text-base28 font-normal mb-4">Your order</h2>
-            <div id="order-items" class="mb-4"></div>
-            <hr class="mb-[20px] border-t-2 border-black">
-            <div class="flex justify-between mb-6">
-                <p class="text-base28 font-normal">Total price:</p>
-                <p id="total-price" class="text-base28 font-normal">₦0</p>
-            </div>
-            <button id="complete-order-btn" class="w-full bg-green-400 hover:bg-green-500 text-white py-3 rounded font-verdana font-bold">
-                Complete order
-            </button>
+    <div id="order-section" class="mt-8">
+        <h2 class="text-center text-base28 font-normal mb-4">Your order</h2>
+        <div id="order-items" class="mb-4"></div>
+        <hr class="mb-[20px] border-t-2 border-black">
+        <div class="flex justify-between mb-2">
+            <p class="text-base28 font-normal">Total price:</p>
+            <p class="text-base28 font-normal">
+                ${discount > 0 ? `<span style='text-decoration:line-through;color:#888'>₦${total}</span> <span style='color:#16a34a;font-weight:bold'>₦${discountedTotal.toFixed(2)}</span>` : `₦${total}`}
+            </p>
         </div>
-    `
+        ${discount > 0 ? `
+        <div class="flex justify-between mb-6" id="discount">
+            <p class="text-sm text-gray-600">Discount (10%):</p>
+            <p class="text-sm text-gray-600">₦${discount.toFixed(2)}</p>
+        </div>` : ''}
+        <div class="flex justify-between font-bold text-lg border-t pt-2">
+            <p>Payable:</p>
+            <p>₦${discountedTotal.toFixed(2)}</p>
+        </div>
+        <button id="complete-order-btn" class="w-full bg-green-400 hover:bg-green-500 text-white py-3 rounded font-verdana font-bold mt-4">
+            Complete order
+        </button>
+    </div>
+`
 }
+
 
 export function getPaymentModalHtml() {
     return `
